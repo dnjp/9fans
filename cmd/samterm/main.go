@@ -2,6 +2,7 @@ package main
 
 import (
 	"image"
+	"fmt"
 	"os"
 	"os/signal"
 	"strings"
@@ -102,6 +103,8 @@ func main() {
 		}
 		if got&(1<<RKeyboard) != 0 {
 			if which != nil {
+				logentry := fmt.Sprintf("outer: p0=%d p1=%d\n", which.p0, which.p1)
+				tmpfile.Write([]byte(logentry))
 				ktype(which, RKeyboard)
 			} else {
 				kbdblock()
@@ -541,7 +544,17 @@ func nontypingkey(c rune) bool {
 
 var kinput = make([]rune, 0, 100)
 
+var tmpfile *os.File = func() *os.File {
+	f, err := os.CreateTemp("/tmp", "samterm.")
+	if err != nil {
+		panic(err)
+	}
+	return f
+}()
+
 func ktype(l *Flayer, res Resource) {
+	tp0 := l.p0
+	tp1 := l.p1
 	t := l.text
 	scrollkey := false
 	if res == RKeyboard {
@@ -553,19 +566,21 @@ func ktype(l *Flayer, res Resource) {
 		return
 	}
 	a := l.p0
-	if a != l.p1 && !scrollkey {
-		flushtyping(true)
-		cut(t, t.front, true, true)
-		return /* it may now be locked */
-	}
 	backspacing := 0
 	kinput = kinput[:0]
 	var c rune
 	for {
 		c = kbdchar()
+		if a != l.p1 && !scrollkey && c != '\t' {
+			flushtyping(true)
+			cut(t, t.front, true, true)
+			return /* it may now be locked */
+		}
 		if c <= 0 {
 			break
 		}
+		logentry := fmt.Sprintf("p0=%d p1=%d c=%c\n", tp0, tp1, c)
+		tmpfile.Write([]byte(logentry))
 		if res == RKeyboard {
 			if nontypingkey(c) || c == ESC {
 				break
@@ -576,11 +591,21 @@ func ktype(l *Flayer, res Resource) {
 				break
 			}
 		}
-		if l.tabexpand && c == '\t' {
-			for i := 0; i < t.tabwidth; i++ {
-				kinput = append(kinput, ' ')
+		switch c {
+		// case 0x19:
+		//	panic("UNINDENT")
+		case '\t':
+			if l.p1 > l.p0 {
+				panic("INDENT")
 			}
-		} else {
+			if l.tabexpand {
+				for i := 0; i < t.tabwidth; i++ {
+					kinput = append(kinput, ' ')
+				}
+			} else {
+				kinput = append(kinput, c)
+			}
+		default:
 			kinput = append(kinput, c)
 		}
 		if autoindent {
