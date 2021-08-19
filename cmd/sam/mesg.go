@@ -56,7 +56,7 @@ var hname = [26]string{
 	Hplumb:      "Hplumb",
 }
 
-var tname = [27]string{
+var tname = [24]string{
 	Tversion:      "Tversion",
 	Tstartcmdfile: "Tstartcmdfile",
 	Tcheck:        "Tcheck",
