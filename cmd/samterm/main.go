@@ -552,6 +552,33 @@ var tmpfile *os.File = func() *os.File {
 	return f
 }()
 
+var pp0 int
+var pp1 int
+var si bool
+var txt []rune
+
+func stab(text []rune, i int, tab []rune) bool {
+	txtlen := len(text)
+	tablen := len(tab)
+	// i is out of bounds
+	if (tablen == 1 && i > txtlen) || (tablen > 1 && i+(tablen-1) > txtlen) {
+		return false
+	}
+	// not at the start of the line
+	if i > 0 && text[i-1] != '\n' {
+		return false
+	}
+	found := false
+	for j := i; j < i+tablen; j++ {
+		if text[j] == '\t' || text[j] == ' ' {
+			found = true
+		} else {
+			found = false
+		}
+	}
+	return found
+}
+
 func ktype(l *Flayer, res Resource) {
 	tp0 := l.p0
 	tp1 := l.p1
@@ -566,16 +593,29 @@ func ktype(l *Flayer, res Resource) {
 		return
 	}
 	a := l.p0
+
+	if a != l.p1 && !scrollkey {
+		pp0 = l.p0
+		pp1 = l.p1
+		if !si {
+			si = true
+			txt = []rune{}
+			for i := 0; i < len(l.text.rasp.sect.text); i++ {
+				txt = append(txt, l.text.rasp.sect.text[i])
+			}
+		}
+		flushtyping(true)
+		cut(t, t.front, true, true)
+		return /* it may now be locked */
+	}
+
+
+
 	backspacing := 0
 	kinput = kinput[:0]
 	var c rune
 	for {
 		c = kbdchar()
-		if a != l.p1 && !scrollkey && c != '\t' {
-			flushtyping(true)
-			cut(t, t.front, true, true)
-			return /* it may now be locked */
-		}
 		if c <= 0 {
 			break
 		}
@@ -592,18 +632,40 @@ func ktype(l *Flayer, res Resource) {
 			}
 		}
 		switch c {
-		// case 0x19:
-		//	panic("UNINDENT")
-		case '\t':
-			if l.p1 > l.p0 {
-				panic("INDENT")
-			}
+		case '\t', 0x19:
+			unindenting := c == 0x19
+			tab := []rune{'\t'}
 			if l.tabexpand {
+				tab = []rune{}
 				for i := 0; i < t.tabwidth; i++ {
-					kinput = append(kinput, ' ')
+					tab = append(tab, ' ')
+				}			
+			}
+			if si && pp1 > pp0 && len(txt) > 0 {
+				txtl := len(txt)
+				if !unindenting {
+					kinput = append(kinput, tab...)
 				}
+				for i := pp0; i < pp1; i++ {
+					ch := txt[i]
+					if i != pp1-1 && ch == '\n' && i+1 != txtl && txt[i+1] != 0 {
+						kinput = append(kinput, ch)
+						if c == '\t' {
+							kinput = append(kinput, tab...)
+						}
+					} else {
+						if unindenting && stab(txt, i, tab) && (i == pp0 || txt[i-1] == '\n' ) {
+							continue
+						}
+						kinput = append(kinput, ch)
+					}
+				}
+				// reset state
+				si = false
+				pp0 = 0
+				pp1 = 0
 			} else {
-				kinput = append(kinput, c)
+				kinput = append(kinput, tab...)
 			}
 		default:
 			kinput = append(kinput, c)
