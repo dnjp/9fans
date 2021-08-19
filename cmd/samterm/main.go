@@ -103,8 +103,6 @@ func main() {
 		}
 		if got&(1<<RKeyboard) != 0 {
 			if which != nil {
-				logentry := fmt.Sprintf("outer: p0=%d p1=%d\n", which.p0, which.p1)
-				tmpfile.Write([]byte(logentry))
 				ktype(which, RKeyboard)
 			} else {
 				kbdblock()
@@ -544,14 +542,6 @@ func nontypingkey(c rune) bool {
 
 var kinput = make([]rune, 0, 100)
 
-var tmpfile *os.File = func() *os.File {
-	f, err := os.CreateTemp("/tmp", "samterm.")
-	if err != nil {
-		panic(err)
-	}
-	return f
-}()
-
 var pp0 int
 var pp1 int
 var si bool
@@ -618,8 +608,6 @@ func ktype(l *Flayer, res Resource) {
 		if c <= 0 {
 			break
 		}
-		logentry := fmt.Sprintf("p0=%d p1=%d c=%c\n", tp0, tp1, c)
-		tmpfile.Write([]byte(logentry))
 		if res == RKeyboard {
 			if nontypingkey(c) || c == ESC {
 				break
