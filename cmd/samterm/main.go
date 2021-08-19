@@ -614,7 +614,7 @@ func ktype(l *Flayer, res Resource) {
 				break
 			}
 		}
-		if c == '\t' || c== 0x19 {
+		if c == '\t' || c == 0x19 {
 			unindenting := c == 0x19
 			tab := []rune{'\t'}
 			if l.tabexpand {
