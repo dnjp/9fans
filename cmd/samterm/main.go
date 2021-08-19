@@ -571,8 +571,6 @@ func stab(text []rune, i int, tab []rune) int {
 }
 
 func ktype(l *Flayer, res Resource) {
-	tp0 := l.p0
-	tp1 := l.p1
 	t := l.text
 	scrollkey := false
 	if res == RKeyboard {
@@ -584,7 +582,6 @@ func ktype(l *Flayer, res Resource) {
 		return
 	}
 	a := l.p0
-
 	if a != l.p1 && !scrollkey {
 		pp0 = l.p0
 		pp1 = l.p1
@@ -599,7 +596,6 @@ func ktype(l *Flayer, res Resource) {
 		cut(t, t.front, true, true)
 		return /* it may now be locked */
 	}
-
 	backspacing := 0
 	kinput = kinput[:0]
 	var c rune
@@ -618,8 +614,7 @@ func ktype(l *Flayer, res Resource) {
 				break
 			}
 		}
-		switch c {
-		case '\t', 0x19:
+		if c == '\t' || c== 0x19 {
 			unindenting := c == 0x19
 			tab := []rune{'\t'}
 			if l.tabexpand {
@@ -659,7 +654,7 @@ func ktype(l *Flayer, res Resource) {
 			} else {
 				kinput = append(kinput, tab...)
 			}
-		default:
+		} else {
 			kinput = append(kinput, c)
 		}
 		if autoindent {
