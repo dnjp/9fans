@@ -66,7 +66,6 @@ func cmdexec(f *File, cp *Cmd) bool {
 			cmdexec(a.f, cp)
 		}
 	default:
-		debug("KEY:%s", key)
 		return cmdtab[key].fn(f, cp)
 	}
 	return true
