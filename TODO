@@ -1,0 +1,29 @@
+Bugs:
+- Command window cursor drops below boundary
+- Line wrapping ocasionally breaks
+
+Features:
+- Maintain selection when un/indenting with \t
+- ^ and _ commands from 9front
+- Enable changing font while running (global and local to buffer)
+- Support ctrl+[n,p,f,b] like deadpixi sam
+- Support meta+[a,e] for traversing by paragraph
+- Basic completion support (candidates displayed in command window)
+- Implement b command from deadpixi sam - fuzzy search and open buffers by filename 
+- Switch to Next/Previous buffer from command window
+- Command like B which plumbs formatting rules to sam
+- Improve line wrapping
+- Smooth scrolling- Scroll while selecting text
+- Acme like file system
+- Event file like acme
+- Log file like acme
+- Remove "rio" menu option and use system clipboard like acme
+- (Support multiple font styles (italic, bold, etc) and sizes for Markdown- Marks like vi
+- SCM/diff support (highlighting add/remove, etc)
+- Desktop icon
+- Support non-plan9port installations using duitdraw/mux9p like Edwood
+
+Refactoring:
+- Cleanup how keyboard bindings are organized
+- More idiomatic Go
+- Write tests
