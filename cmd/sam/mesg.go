@@ -56,7 +56,7 @@ var hname = [26]string{
 	Hplumb:      "Hplumb",
 }
 
-var tname = [24]string{
+var tname = [27]string{
 	Tversion:      "Tversion",
 	Tstartcmdfile: "Tstartcmdfile",
 	Tcheck:        "Tcheck",
@@ -709,7 +709,7 @@ func outTsv(type_ Hmesg, s int, v int64) {
 }
 
 func outstart(typ Hmesg) {
-	journal(1, hname[typ])
+	// journal(1, hname[typ])
 	outp = outmsg[len(outmsg):len(outmsg)]
 	outp = append(outp, byte(typ), 0, 0)
 }

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"image"
 	"fmt"
+	"image"
 	"os"
 	"os/signal"
 	"strings"
@@ -557,24 +557,25 @@ var pp1 int
 var si bool
 var txt []rune
 
-func stab(text []rune, i int, tab []rune) bool {
+func stab(text []rune, i int, tab []rune) int {
 	txtlen := len(text)
 	tablen := len(tab)
 	// i is out of bounds
 	if (tablen == 1 && i > txtlen) || (tablen > 1 && i+(tablen-1) > txtlen) {
-		return false
+		return -1
 	}
 	// not at the start of the line
 	if i > 0 && text[i-1] != '\n' {
-		return false
+		return -1
 	}
-	found := false
+	found := 0
 	for j := i; j < i+tablen; j++ {
 		if text[j] == '\t' || text[j] == ' ' {
-			found = true
-		} else {
-			found = false
+			found++
 		}
+	}
+	if found < len(tab) {
+		return -1
 	}
 	return found
 }
@@ -609,8 +610,6 @@ func ktype(l *Flayer, res Resource) {
 		return /* it may now be locked */
 	}
 
-
-
 	backspacing := 0
 	kinput = kinput[:0]
 	var c rune
@@ -639,7 +638,7 @@ func ktype(l *Flayer, res Resource) {
 				tab = []rune{}
 				for i := 0; i < t.tabwidth; i++ {
 					tab = append(tab, ' ')
-				}			
+				}
 			}
 			if si && pp1 > pp0 && len(txt) > 0 {
 				txtl := len(txt)
@@ -654,8 +653,13 @@ func ktype(l *Flayer, res Resource) {
 							kinput = append(kinput, tab...)
 						}
 					} else {
-						if unindenting && stab(txt, i, tab) && (i == pp0 || txt[i-1] == '\n' ) {
-							continue
+						if cont := stab(txt, i, tab); cont > 0 && unindenting {
+							if cont == 1 {
+								continue
+							} else {
+								i += cont - 1
+								continue
+							}
 						}
 						kinput = append(kinput, ch)
 					}
