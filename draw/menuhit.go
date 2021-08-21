@@ -1,5 +1,7 @@
 package draw
 
+import "9fans.net/go/draw/frame"
+
 const (
 	menuMargin      = 4  /* outside to text */
 	menuBorder      = 2  /* outside to selection boxes */
@@ -22,6 +24,7 @@ type Menu struct {
 	Item    []string
 	Gen     func(k int, buf []byte) (text []byte, ok bool)
 	LastHit int
+	Cols    [frame.NCOL]*Image // text and background colors
 
 	cache []byte
 }
@@ -35,36 +38,49 @@ func (me *Menu) gen(k int) ([]byte, bool) {
 }
 
 // TODO hide in display
-var menu struct {
-	txt   *Image
-	back  *Image
-	high  *Image
-	bord  *Image
-	text  *Image
-	htext *Image
-}
+// var menu struct {
+// txt   *Image
+// back  *Image
+// high  *Image
+// bord  *Image
+// text  *Image
+// htext *Image
+// }
 
-func menucolors(display *Display) {
+func menucolors(display *Display, me *Menu) {
 	/* Main tone is greenish, with negative selection */
-	menu.back = display.AllocImageMix(PaleGreen, White)
-	menu.high, _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, DarkGreen) /* dark green */
-	menu.bord, _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, MedGreen)  /* not as dark green */
-	if menu.back == nil || menu.high == nil || menu.bord == nil {
+	if me.Cols[frame.BACK] == nil {
+		me.Cols[frame.BACK] = display.AllocImageMix(PaleGreen, White)
+	}
+	if me.Cols[frame.HIGH] == nil {
+		me.Cols[frame.HIGH], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, DarkGreen) /* dark green */
+	}
+	if me.Cols[frame.BORD] == nil {
+		me.Cols[frame.BORD], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, MedGreen) /* not as dark green */
+	}
+	if me.Cols[frame.BACK] == nil || me.Cols[frame.HIGH] == nil || me.Cols[frame.BORD] == nil {
 		goto Error
 	}
-	menu.text = display.Black
-	menu.htext = menu.back
+	if me.Cols[frame.TEXT] == nil {
+		me.Cols[frame.TEXT], _ = display.Black
+	}
+	if me.Cols[frame.HTEXT] == nil {
+		me.Cols[frame.HTEXT], _ = me.Cols[frame.BACK]
+	}
+	if me.Cols[frame.MTXT] == nil {
+		me.Cols[frame.MTXT], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, DarkGreen) /* border color; BUG? */
+	}
 	return
 
 Error:
-	menu.back.Free()
-	menu.high.Free()
-	menu.bord.Free()
-	menu.back = display.White
-	menu.high = display.Black
-	menu.bord = display.Black
-	menu.text = display.Black
-	menu.htext = display.White
+	me.Cols[frame.BACK].Free()
+	me.Cols[frame.HIGH].Free()
+	me.Cols[frame.BORD].Free()
+	me.Cols[frame.BACK] = display.White
+	me.Cols[frame.HIGH] = display.Black
+	me.Cols[frame.BORD] = display.Black
+	me.Cols[frame.TEXT] = display.Black
+	me.Cols[frame.HTEXT] = display.White
 }
 
 /*
@@ -119,9 +135,9 @@ func paintitem(m *Image, me *Menu, textr Rectangle, off, i int, highlight bool, 
 	var pt Point
 	pt.X = (textr.Min.X + textr.Max.X - width) / 2
 	pt.Y = textr.Min.Y + i*(font.Height+menuVspacing)
-	back, text := menu.back, menu.text
+	back, text := me.Cols[frame.BACK], me.Cols[frame.TEXT]
 	if highlight {
-		back, text = menu.high, menu.htext
+		back, text = me.Cols[frame.HIGH], me.Cols[frame.HTEXT]
 	}
 	m.Draw(r, back, nil, pt)
 	if item != "" {
@@ -155,27 +171,27 @@ func menuscan(m *Image, me *Menu, but int, mc *Mousectl, textr Rectangle, off, l
 }
 
 func menupaint(m *Image, me *Menu, textr Rectangle, off, nitemdrawn int) {
-	m.Draw(textr.Inset(menuBorder-menuMargin), menu.back, nil, ZP)
+	m.Draw(textr.Inset(menuBorder-menuMargin), me.Cols[frame.BACK], nil, ZP)
 	for i := 0; i < nitemdrawn; i++ {
 		paintitem(m, me, textr, off, i, false, nil, nil)
 	}
 }
 
-func menuscrollpaint(m *Image, scrollr Rectangle, off, nitem, nitemdrawn int) {
-	m.Draw(scrollr, menu.back, nil, ZP)
+func menuscrollpaint(m *Image, me *Menu, scrollr Rectangle, off, nitem, nitemdrawn int) {
+	m.Draw(scrollr, me.Cols[frame.BACK], nil, ZP)
 	r := scrollr
 	r.Min.Y = scrollr.Min.Y + (scrollr.Dy()*off)/nitem
 	r.Max.Y = scrollr.Min.Y + (scrollr.Dy()*(off+nitemdrawn))/nitem
 	if r.Max.Y < r.Min.Y+2 {
 		r.Max.Y = r.Min.Y + 2
 	}
-	m.Border(r, 1, menu.bord, ZP)
-	if menu.txt == nil {
+	m.Border(r, 1, me.Cols[frame.BORD], ZP)
+	if me.Cols[frame.MTXT] == nil {
 		display := m.Display
-		menu.txt, _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, DarkGreen) /* border color; BUG? */
+		me.Cols[frame.MTXT], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, DarkGreen) /* border color; BUG? */
 	}
-	if menu.txt != nil {
-		m.Draw(r.Inset(1), menu.txt, nil, ZP)
+	if me.Cols[frame.MTXT] != nil {
+		m.Draw(r.Inset(1), me.Cols[frame.MTXT], nil, ZP)
 	}
 }
 
@@ -193,8 +209,8 @@ func MenuHit(but int, mc *Mousectl, me *Menu, scr *Screen) int {
 	screen := display.ScreenImage
 	font := display.Font
 
-	if menu.back == nil {
-		menucolors(display)
+	if me.Cols[frame.BACK] == nil {
+		menucolors(display, me)
 	}
 	sc := screen.Clipr
 	screen.ReplClipr(false, screen.R)
@@ -288,14 +304,14 @@ func MenuHit(but int, mc *Mousectl, me *Menu, scr *Screen) int {
 			backup.Draw(menur, screen, nil, menur.Min)
 		}
 	}
-	b.Draw(menur, menu.back, nil, ZP)
-	b.Border(menur, menuBlackborder, menu.bord, ZP)
+	b.Draw(menur, me.Cols[frame.BACK], nil, ZP)
+	b.Border(menur, menuBlackborder, me.Cols[frame.BORD], ZP)
 	save, _ := display.AllocImage(menurect(display, textr, 0), screen.Pix, false, White)
 	r = menurect(display, textr, lasti)
 	display.MoveCursor(r.Min.Add(r.Max).Div(2))
 	menupaint(b, me, textr, off, nitemdrawn)
 	if scrolling {
-		menuscrollpaint(b, scrollr, off, nitem, nitemdrawn)
+		menuscrollpaint(b, me, scrollr, off, nitem, nitemdrawn)
 	}
 	for mc.Buttons&(1<<(but-1)) != 0 {
 		lasti = menuscan(b, me, but, mc, textr, off, lasti, save)
@@ -315,7 +331,7 @@ func MenuHit(but int, mc *Mousectl, me *Menu, scr *Screen) int {
 				if noff != off {
 					off = noff
 					menupaint(b, me, textr, off, nitemdrawn)
-					menuscrollpaint(b, scrollr, off, nitem, nitemdrawn)
+					menuscrollpaint(b, me, scrollr, off, nitem, nitemdrawn)
 				}
 			}
 			mc.Read()

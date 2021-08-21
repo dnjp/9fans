@@ -78,6 +78,7 @@ const (
 	BORD         // border color
 	TEXT         // text color
 	HTEXT        // highlight text color
+	MTXT         // menu text color // TODO(dnjp)
 	NCOL
 )
 
