@@ -1,7 +1,7 @@
 package frame
 
 import (
-	"9fans.net/go/draw"
+	"github.com/dnjp/9fans/draw"
 )
 
 func (f *Frame) bxscan(tmpf *Frame, text []rune, ppt *draw.Point) draw.Point {

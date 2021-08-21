@@ -3,8 +3,8 @@ package main
 import (
 	"image"
 
-	"9fans.net/go/draw"
-	"9fans.net/go/draw/frame"
+	"github.com/dnjp/9fans/draw"
+	"github.com/dnjp/9fans/draw/frame"
 )
 
 var scrtmp *draw.Image

@@ -3,7 +3,7 @@ package frame
 import (
 	"unicode/utf8"
 
-	"9fans.net/go/draw"
+	"github.com/dnjp/9fans/draw"
 )
 
 func (f *Frame) canfit(pt draw.Point, b *box) int {

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"9fans.net/go/plumb"
+	"github.com/dnjp/9fans/plumb"
 )
 
 // #include "sam.h"

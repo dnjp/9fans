@@ -7,8 +7,8 @@ import (
 	"io"
 	"os"
 
-	"9fans.net/go/plan9"
-	"9fans.net/go/plan9/client"
+	"github.com/dnjp/9fans/plan9"
+	"github.com/dnjp/9fans/plan9/client"
 )
 
 func main() {

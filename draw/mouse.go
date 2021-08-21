@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"9fans.net/go/draw/drawfcall"
+	"github.com/dnjp/9fans/draw/drawfcall"
 )
 
 // Mouse is the structure describing the current state of the mouse.

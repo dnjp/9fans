@@ -1,7 +1,5 @@
 package draw
 
-import "9fans.net/go/draw/frame"
-
 const (
 	menuMargin      = 4  /* outside to text */
 	menuBorder      = 2  /* outside to selection boxes */
@@ -11,6 +9,17 @@ const (
 	menuNscroll     = 20 /* number entries in scrolling part */
 	menuScrollwid   = 14 /* width of scroll bar */
 	menuGap         = 4  /* between text and scroll bar */
+)
+
+// BACK, HIGH, BORD, TEXT, and HTEXT are indices into Cols/
+const (
+	BACK  = iota // background color
+	HIGH         // highlight background color
+	BORD         // border color
+	TEXT         // text color
+	HTEXT        // highlight text color
+	MTXT         // menu text color // TODO(dnjp)
+	NCOL
 )
 
 // A Menu describes a menu of items.
@@ -24,7 +33,7 @@ type Menu struct {
 	Item    []string
 	Gen     func(k int, buf []byte) (text []byte, ok bool)
 	LastHit int
-	Cols    [frame.NCOL]*Image // text and background colors
+	Cols    [NCOL]*Image // text and background colors
 
 	cache []byte
 }
@@ -49,38 +58,38 @@ func (me *Menu) gen(k int) ([]byte, bool) {
 
 func menucolors(display *Display, me *Menu) {
 	/* Main tone is greenish, with negative selection */
-	if me.Cols[frame.BACK] == nil {
-		me.Cols[frame.BACK] = display.AllocImageMix(PaleGreen, White)
+	if me.Cols[BACK] == nil {
+		me.Cols[BACK] = display.AllocImageMix(PaleGreen, White)
 	}
-	if me.Cols[frame.HIGH] == nil {
-		me.Cols[frame.HIGH], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, DarkGreen) /* dark green */
+	if me.Cols[HIGH] == nil {
+		me.Cols[HIGH], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, DarkGreen) /* dark green */
 	}
-	if me.Cols[frame.BORD] == nil {
-		me.Cols[frame.BORD], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, MedGreen) /* not as dark green */
+	if me.Cols[BORD] == nil {
+		me.Cols[BORD], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, MedGreen) /* not as dark green */
 	}
-	if me.Cols[frame.BACK] == nil || me.Cols[frame.HIGH] == nil || me.Cols[frame.BORD] == nil {
+	if me.Cols[BACK] == nil || me.Cols[HIGH] == nil || me.Cols[BORD] == nil {
 		goto Error
 	}
-	if me.Cols[frame.TEXT] == nil {
-		me.Cols[frame.TEXT], _ = display.Black
+	if me.Cols[TEXT] == nil {
+		me.Cols[TEXT] = display.Black
 	}
-	if me.Cols[frame.HTEXT] == nil {
-		me.Cols[frame.HTEXT], _ = me.Cols[frame.BACK]
+	if me.Cols[HTEXT] == nil {
+		me.Cols[HTEXT] = me.Cols[BACK]
 	}
-	if me.Cols[frame.MTXT] == nil {
-		me.Cols[frame.MTXT], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, DarkGreen) /* border color; BUG? */
+	if me.Cols[MTXT] == nil {
+		me.Cols[MTXT], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, DarkGreen) /* border color; BUG? */
 	}
 	return
 
 Error:
-	me.Cols[frame.BACK].Free()
-	me.Cols[frame.HIGH].Free()
-	me.Cols[frame.BORD].Free()
-	me.Cols[frame.BACK] = display.White
-	me.Cols[frame.HIGH] = display.Black
-	me.Cols[frame.BORD] = display.Black
-	me.Cols[frame.TEXT] = display.Black
-	me.Cols[frame.HTEXT] = display.White
+	me.Cols[BACK].Free()
+	me.Cols[HIGH].Free()
+	me.Cols[BORD].Free()
+	me.Cols[BACK] = display.White
+	me.Cols[HIGH] = display.Black
+	me.Cols[BORD] = display.Black
+	me.Cols[TEXT] = display.Black
+	me.Cols[HTEXT] = display.White
 }
 
 /*
@@ -135,9 +144,9 @@ func paintitem(m *Image, me *Menu, textr Rectangle, off, i int, highlight bool, 
 	var pt Point
 	pt.X = (textr.Min.X + textr.Max.X - width) / 2
 	pt.Y = textr.Min.Y + i*(font.Height+menuVspacing)
-	back, text := me.Cols[frame.BACK], me.Cols[frame.TEXT]
+	back, text := me.Cols[BACK], me.Cols[TEXT]
 	if highlight {
-		back, text = me.Cols[frame.HIGH], me.Cols[frame.HTEXT]
+		back, text = me.Cols[HIGH], me.Cols[HTEXT]
 	}
 	m.Draw(r, back, nil, pt)
 	if item != "" {
@@ -171,27 +180,27 @@ func menuscan(m *Image, me *Menu, but int, mc *Mousectl, textr Rectangle, off, l
 }
 
 func menupaint(m *Image, me *Menu, textr Rectangle, off, nitemdrawn int) {
-	m.Draw(textr.Inset(menuBorder-menuMargin), me.Cols[frame.BACK], nil, ZP)
+	m.Draw(textr.Inset(menuBorder-menuMargin), me.Cols[BACK], nil, ZP)
 	for i := 0; i < nitemdrawn; i++ {
 		paintitem(m, me, textr, off, i, false, nil, nil)
 	}
 }
 
 func menuscrollpaint(m *Image, me *Menu, scrollr Rectangle, off, nitem, nitemdrawn int) {
-	m.Draw(scrollr, me.Cols[frame.BACK], nil, ZP)
+	m.Draw(scrollr, me.Cols[BACK], nil, ZP)
 	r := scrollr
 	r.Min.Y = scrollr.Min.Y + (scrollr.Dy()*off)/nitem
 	r.Max.Y = scrollr.Min.Y + (scrollr.Dy()*(off+nitemdrawn))/nitem
 	if r.Max.Y < r.Min.Y+2 {
 		r.Max.Y = r.Min.Y + 2
 	}
-	m.Border(r, 1, me.Cols[frame.BORD], ZP)
-	if me.Cols[frame.MTXT] == nil {
+	m.Border(r, 1, me.Cols[BORD], ZP)
+	if me.Cols[MTXT] == nil {
 		display := m.Display
-		me.Cols[frame.MTXT], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, DarkGreen) /* border color; BUG? */
+		me.Cols[MTXT], _ = display.AllocImage(Rect(0, 0, 1, 1), display.ScreenImage.Pix, true, DarkGreen) /* border color; BUG? */
 	}
-	if me.Cols[frame.MTXT] != nil {
-		m.Draw(r.Inset(1), me.Cols[frame.MTXT], nil, ZP)
+	if me.Cols[MTXT] != nil {
+		m.Draw(r.Inset(1), me.Cols[MTXT], nil, ZP)
 	}
 }
 
@@ -209,7 +218,7 @@ func MenuHit(but int, mc *Mousectl, me *Menu, scr *Screen) int {
 	screen := display.ScreenImage
 	font := display.Font
 
-	if me.Cols[frame.BACK] == nil {
+	if me.Cols[BACK] == nil {
 		menucolors(display, me)
 	}
 	sc := screen.Clipr
@@ -304,8 +313,8 @@ func MenuHit(but int, mc *Mousectl, me *Menu, scr *Screen) int {
 			backup.Draw(menur, screen, nil, menur.Min)
 		}
 	}
-	b.Draw(menur, me.Cols[frame.BACK], nil, ZP)
-	b.Border(menur, menuBlackborder, me.Cols[frame.BORD], ZP)
+	b.Draw(menur, me.Cols[BACK], nil, ZP)
+	b.Border(menur, menuBlackborder, me.Cols[BORD], ZP)
 	save, _ := display.AllocImage(menurect(display, textr, 0), screen.Pix, false, White)
 	r = menurect(display, textr, lasti)
 	display.MoveCursor(r.Min.Add(r.Max).Div(2))
