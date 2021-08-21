@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"9fans.net/go/draw"
-	"9fans.net/go/plan9/client"
+	"github.com/dnjp/9fans/draw"
+	"github.com/dnjp/9fans/plan9/client"
 )
 
 var (

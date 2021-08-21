@@ -9,10 +9,10 @@ import (
 	"os"
 	"strconv"
 
-	"9fans.net/go/draw"
-	"9fans.net/go/plan9"
-	"9fans.net/go/plan9/client"
-	"9fans.net/go/plumb"
+	"github.com/dnjp/9fans/draw"
+	"github.com/dnjp/9fans/plan9"
+	"github.com/dnjp/9fans/plan9/client"
+	"github.com/dnjp/9fans/plumb"
 )
 
 var exname string

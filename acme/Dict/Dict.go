@@ -1,10 +1,10 @@
-package main // import "9fans.net/go/acme/Dict"
+package main // import "github.com/dnjp/9fans/acme/Dict"
 
 import (
 	"flag"
 	"log"
 
-	"9fans.net/go/acme"
+	"github.com/dnjp/9fans/acme"
 	"golang.org/x/net/dict"
 )
 

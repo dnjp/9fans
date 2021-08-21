@@ -17,7 +17,7 @@ import (
 	"os"
 	"time"
 
-	"9fans.net/go/draw"
+	"github.com/dnjp/9fans/draw"
 )
 
 /*

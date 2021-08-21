@@ -1,7 +1,7 @@
 package frame
 
 import (
-	"9fans.net/go/draw"
+	"github.com/dnjp/9fans/draw"
 )
 
 func region(a, b int) int {

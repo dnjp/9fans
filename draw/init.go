@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"9fans.net/go/draw/drawfcall"
+	"github.com/dnjp/9fans/draw/drawfcall"
 )
 
 // Display locking:

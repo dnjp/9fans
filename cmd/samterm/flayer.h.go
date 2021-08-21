@@ -3,7 +3,7 @@ package main
 import (
 	"image"
 
-	"9fans.net/go/draw/frame"
+	"github.com/dnjp/9fans/draw/frame"
 )
 
 type Vis int
